@@ -1,0 +1,17 @@
+# user/runtime settings & generated artifacts
+/workspace/
+!/workspace/.gitkeep
+# build/preview
+/dist/
+*.deb
+/.preview/
+# python
+.venv/
+__pycache__/
+*.pyc
+# env/secrets
+.env
+.env.*
+*.token
+# os
+.DS_Store

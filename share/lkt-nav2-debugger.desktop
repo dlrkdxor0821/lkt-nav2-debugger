@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=lkt-nav2-debugger
+GenericName=ROS2 Nav2 tuning console
+Comment=rviz/rqt setup & launch for ROS2 Nav2 tuning
+Exec=lkt-nav2-debugger
+Icon=lkt-nav2-debugger
+Terminal=false
+Categories=Development;
+Keywords=ros2;rviz;rqt;nav2;robot;tuning;
+StartupNotify=true

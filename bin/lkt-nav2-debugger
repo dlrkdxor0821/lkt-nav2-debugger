@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# lkt-nav2-debugger launcher — serve the frontend and open it as an app window.
+# Resolves the install root for both dev checkout and /opt (.deb) install.
+set -euo pipefail
+
+PORT="${LKT_PORT:-8777}"
+
+if [[ -n "${LKT_ROOT:-}" && -d "$LKT_ROOT/frontend" ]]; then
+  ROOT="$LKT_ROOT"
+elif [[ -d /opt/lkt-nav2-debugger/frontend ]]; then
+  ROOT=/opt/lkt-nav2-debugger
+else
+  ROOT="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+fi
+FRONT="$ROOT/frontend"
+[[ -f "$FRONT/index.html" ]] || { echo "[lkt-nav2-debugger] frontend not found under $ROOT" >&2; exit 1; }
+
+URL="http://127.0.0.1:${PORT}/"
+echo "[lkt-nav2-debugger] serving $FRONT  ->  $URL"
+
+# Prefer a FastAPI backend when it lands (backend/app.py + uvicorn); else static server.
+if [[ -f "$ROOT/backend/app.py" ]] && python3 -c "import uvicorn" >/dev/null 2>&1; then
+  ( cd "$ROOT" && exec python3 -m uvicorn backend.app:app --host 127.0.0.1 --port "$PORT" ) &
+else
+  ( cd "$FRONT" && exec python3 -m http.server "$PORT" --bind 127.0.0.1 >/dev/null 2>&1 ) &
+fi
+SRV=$!
+trap 'kill "$SRV" 2>/dev/null || true' EXIT INT TERM
+
+sleep 0.7
+if command -v xdg-open >/dev/null 2>&1; then xdg-open "$URL" >/dev/null 2>&1 || true
+else echo "[lkt-nav2-debugger] open $URL in your browser"; fi
+
+wait "$SRV"
