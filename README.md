@@ -13,8 +13,8 @@ rviz·rqt를 **쉽게 세팅**하고 **alias로 원워드 실행**해주는 ROS2
 ## 설치 (.deb 다운로드) — 가장 쉬움
 git 클론·빌드 없이 Release의 `.deb`만 받아 설치한다.
 ```bash
-wget https://github.com/dlrkdxor0821/lkt-nav2-debugger/releases/download/v0.1.0/lkt-nav2-debugger_0.1.0_all.deb
-sudo apt install ./lkt-nav2-debugger_0.1.0_all.deb
+wget https://github.com/dlrkdxor0821/lkt-nav2-debugger/releases/download/v0.1.1/lkt-nav2-debugger_0.1.1_all.deb
+sudo apt install ./lkt-nav2-debugger_0.1.1_all.deb
 lkt-nav2-debugger          # 실행(서버+브라우저). 앱 메뉴에도 'lkt-nav2-debugger'
 ```
 제거: `sudo apt remove lkt-nav2-debugger`
@@ -34,8 +34,8 @@ lkt-nav2-debugger                # 또는 앱 메뉴에서 실행
 ```
 **.deb (시스템 설치):**
 ```bash
-packaging/build-deb.sh 0.1.0     # dist/lkt-nav2-debugger_0.1.0_all.deb 생성
-sudo dpkg -i dist/lkt-nav2-debugger_0.1.0_all.deb
+packaging/build-deb.sh 0.1.1     # dist/lkt-nav2-debugger_0.1.1_all.deb 생성
+sudo dpkg -i dist/lkt-nav2-debugger_0.1.1_all.deb
 lkt-nav2-debugger
 ```
 

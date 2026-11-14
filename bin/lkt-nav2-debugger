@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# lkt-nav2-debugger launcher — serve the frontend and open it as an app window.
+# lkt-nav2-debugger launcher.
+# Serves the frontend locally and opens it as a chromeless APP WINDOW
+# (Chromium-family --app mode) so it feels like a desktop app, not a web tab.
 # Resolves the install root for both dev checkout and /opt (.deb) install.
 set -euo pipefail
 
@@ -18,7 +20,7 @@ FRONT="$ROOT/frontend"
 URL="http://127.0.0.1:${PORT}/"
 echo "[lkt-nav2-debugger] serving $FRONT  ->  $URL"
 
-# Prefer a FastAPI backend when it lands (backend/app.py + uvicorn); else static server.
+# backend (FastAPI) when it lands; else static server
 if [[ -f "$ROOT/backend/app.py" ]] && python3 -c "import uvicorn" >/dev/null 2>&1; then
   ( cd "$ROOT" && exec python3 -m uvicorn backend.app:app --host 127.0.0.1 --port "$PORT" ) &
 else
@@ -27,8 +29,29 @@ fi
 SRV=$!
 trap 'kill "$SRV" 2>/dev/null || true' EXIT INT TERM
 
-sleep 0.7
-if command -v xdg-open >/dev/null 2>&1; then xdg-open "$URL" >/dev/null 2>&1 || true
-else echo "[lkt-nav2-debugger] open $URL in your browser"; fi
+# wait for the server to accept connections (max ~5s)
+for _ in $(seq 1 50); do
+  (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null && { exec 3>&- 3<&-; break; }
+  sleep 0.1
+done
 
-wait "$SRV"
+# find a Chromium-family browser for app-window mode
+APP_BROWSER=""
+for b in google-chrome google-chrome-stable chromium chromium-browser brave-browser microsoft-edge; do
+  if command -v "$b" >/dev/null 2>&1; then APP_BROWSER="$b"; break; fi
+done
+
+if [[ -n "$APP_BROWSER" && -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+  PROFILE="${XDG_CACHE_HOME:-$HOME/.cache}/lkt-nav2-debugger/app-profile"
+  mkdir -p "$PROFILE"
+  echo "[lkt-nav2-debugger] app window via $APP_BROWSER (close window to quit)"
+  # foreground: closing the app window returns here -> server is stopped by trap
+  "$APP_BROWSER" --app="$URL" --window-size=1360,900 \
+    --user-data-dir="$PROFILE" --no-first-run --no-default-browser-check \
+    --class=lkt-nav2-debugger >/dev/null 2>&1 || true
+else
+  # no chromium / headless: fall back to default browser and keep serving
+  if command -v xdg-open >/dev/null 2>&1; then xdg-open "$URL" >/dev/null 2>&1 || true
+  else echo "[lkt-nav2-debugger] open $URL in your browser"; fi
+  wait "$SRV"
+fi
